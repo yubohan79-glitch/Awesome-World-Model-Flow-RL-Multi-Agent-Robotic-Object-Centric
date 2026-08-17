@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from isaaclab.app import AppLauncher
+from pxr import Usd
 
 
 PUSHABLE_NAMES = ("RandomObstacleNorthEast", "RandomObstacleSouthWest")

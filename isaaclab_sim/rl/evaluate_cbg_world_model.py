@@ -11,7 +11,6 @@ from experiments.scenario_protocol import SCENARIOS, apply_scenario, tracker_ove
 from expert_policy import compose_policy_action
 from robocup_visionrl_selfplay_env import (
     AGENTS,
-    DomainRandomizationParams,
     RoboCupVisionRLSelfPlayEnv,
 )
 from train_world_model_sacflow_selfplay import MultiAgentFlowActors

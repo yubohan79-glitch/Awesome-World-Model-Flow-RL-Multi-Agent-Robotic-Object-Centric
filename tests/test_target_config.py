@@ -8,6 +8,13 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
+
+
+def _arena_source() -> str:
+    """Concatenate all split arena-sim submodules for source-contract checks."""
+    pkg = ROOT / "isaaclab_sim" / "robocup_visionrl_arena_sim"
+    return "\n".join(p.read_text(encoding="utf-8") for p in sorted(pkg.glob("*.py")))
+
 def test_public_target_layout_matches_rule_contract():
     layout = yaml.safe_load((ROOT / "config" / "target_layout.yaml").read_text(encoding="utf-8"))
     normals = layout["targets"]["normal"]["positions"]
@@ -36,7 +43,7 @@ def test_public_target_layout_matches_rule_contract():
 
 
 def test_isaaclab_base_targets_are_vertical_not_wall_leaning():
-    source = (ROOT / "isaaclab_sim" / "robocup_visionrl_arena_sim.py").read_text(encoding="utf-8")
+    source = _arena_source()
 
     assert "pitch=math.radians(-45.0)" not in source
     assert "BLUE_BASE_TARGET_XY = (-1.36, 1.36)" in source
@@ -54,7 +61,7 @@ def test_isaaclab_base_targets_are_vertical_not_wall_leaning():
 
 
 def test_isaaclab_base_armor_uses_rule_edge_l_shape():
-    source = (ROOT / "isaaclab_sim" / "robocup_visionrl_arena_sim.py").read_text(encoding="utf-8")
+    source = _arena_source()
 
     assert "YELLOW_ATTACK_BLUE_BASE_XY = (-0.72, 1.32)" in source
     assert "BLUE_ATTACK_YELLOW_BASE_XY = (0.72, -1.32)" in source
@@ -68,7 +75,7 @@ def test_isaaclab_base_armor_uses_rule_edge_l_shape():
 
 
 def test_isaaclab_pushable_obstacles_use_rule_diagram_reference_positions():
-    source = (ROOT / "isaaclab_sim" / "robocup_visionrl_arena_sim.py").read_text(encoding="utf-8")
+    source = _arena_source()
 
     assert '"box_ne": (0.80, 0.80)' in source
     assert '"box_sw": (-0.80, -0.80)' in source
@@ -79,7 +86,7 @@ def test_isaaclab_pushable_obstacles_use_rule_diagram_reference_positions():
 
 
 def test_isaaclab_pushable_obstacles_are_dynamic_physical_boxes():
-    source = (ROOT / "isaaclab_sim" / "robocup_visionrl_arena_sim.py").read_text(encoding="utf-8")
+    source = _arena_source()
     body = source[source.index("def spawn_pushable_obstacle") : source.index("def segment_intersects_aabb")]
 
     assert "rigid_body=True" in body
@@ -94,7 +101,7 @@ def test_isaaclab_pushable_obstacles_are_dynamic_physical_boxes():
 
 
 def test_isaaclab_replay_keeps_pushed_box_pose_when_trace_is_static():
-    source = (ROOT / "isaaclab_sim" / "robocup_visionrl_arena_sim.py").read_text(encoding="utf-8")
+    source = _arena_source()
 
     assert '"last_box_trace_xy"' in source
     assert "trace_changed =" in source
@@ -103,7 +110,7 @@ def test_isaaclab_replay_keeps_pushed_box_pose_when_trace_is_static():
 
 
 def test_isaaclab_replay_uses_visual_hull_for_pushable_boxes():
-    source = (ROOT / "isaaclab_sim" / "robocup_visionrl_arena_sim.py").read_text(encoding="utf-8")
+    source = _arena_source()
 
     assert "ROBOT_PUSHABLE_CLEARANCE_RADIUS = ROBOT_COLLISION_RADIUS + 0.030" in source
     assert "ROBOT_PUSHABLE_RENDER_CLEARANCE_RADIUS = ROBOT_PUSHABLE_CLEARANCE_RADIUS + 0.065" in source
@@ -114,7 +121,7 @@ def test_isaaclab_replay_uses_visual_hull_for_pushable_boxes():
 
 
 def test_isaaclab_recorder_supports_true_top_view():
-    source = (ROOT / "isaaclab_sim" / "robocup_visionrl_arena_sim.py").read_text(encoding="utf-8")
+    source = _arena_source()
 
     assert 'choices=["overview", "top", "yellow_pov", "blue_pov"]' in source
     assert 'self.view not in ("overview", "top")' in source

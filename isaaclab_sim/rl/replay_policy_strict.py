@@ -20,7 +20,6 @@ from robocup_visionrl_gym_env import (
     BLUE_BASE_XY,
     HALF_ARENA,
     PUSHABLE_OBSTACLE_HALF,
-    ROBOT_PUSHABLE_CLEARANCE_RADIUS,
     ROBOT_LENGTH,
     ROBOT_WIDTH,
     YELLOW_BASE_XY,

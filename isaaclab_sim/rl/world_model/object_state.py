@@ -10,7 +10,6 @@ from robocup_visionrl_gym_env import (
     HALF_ARENA,
     PUSHABLE_OBSTACLE_HALF,
     active_base_armor_blockers,
-    wrap_angle,
 )
 from robocup_visionrl_selfplay_env import AGENTS, RoboCupVisionRLSelfPlayEnv
 

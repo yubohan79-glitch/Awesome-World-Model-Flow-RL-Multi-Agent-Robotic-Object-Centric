@@ -7,7 +7,6 @@ import numpy as np
 
 from robocup_visionrl_selfplay_env import (
     AGENTS,
-    BASE_RUSH_ARMOR_GATE,
     BASE_RUSH_BALANCED_NORMAL_HITS,
     BASE_RUSH_EARLY_NORMAL_HITS,
     BASE_RUSH_PREFERRED_NORMAL_HITS,
@@ -16,7 +15,6 @@ from robocup_visionrl_selfplay_env import (
     MIN_SHOOT_DISTANCE,
     RECOVERY_CONFIDENCE_THRESHOLD,
     SHOOT_RANGE,
-    SHOOTER_FORWARD_OFFSET,
     TACTICAL_ACTION_DIM,
     RoboCupVisionRLSelfPlayEnv,
     laser_origin_from_pose,
@@ -252,7 +250,6 @@ def _fire_readiness(env: RoboCupVisionRLSelfPlayEnv, team: str, target) -> tuple
     dy = float(target.xy[1] - origin[1])
     forward = (math.cos(float(pose[2])), math.sin(float(pose[2])))
     shot_distance = dx * forward[0] + dy * forward[1]
-    lateral_error = abs(dx * forward[1] - dy * forward[0])
     bearing = math.atan2(dy, dx)
     yaw_error = abs(wrap_angle(bearing - float(pose[2])))
     ready = bool(geometry["geometry_ready"])
