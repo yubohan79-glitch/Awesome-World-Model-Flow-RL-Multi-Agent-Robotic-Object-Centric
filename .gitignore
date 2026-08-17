@@ -72,3 +72,6 @@ tensorboard/
 *.local.yaml
 *.local.yml
 local_config/
+
+# Internal drift-test logs (not part of published evidence)
+docs/rl_data/ros2_motion_drift*/

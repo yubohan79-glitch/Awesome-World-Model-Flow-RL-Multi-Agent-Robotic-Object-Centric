@@ -1,5 +1,0 @@
-rows=229
-samples=228
-duration_s=22.7
-cmd_vel_hz_mean=~30.0
-scan_hz_mean=~30.0

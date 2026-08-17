@@ -1,3 +1,0 @@
-Type: sensor_msgs/msg/LaserScan
-Publisher count: 1
-Subscription count: 1

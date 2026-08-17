@@ -1,7 +1,0 @@
-/cmd_vel [geometry_msgs/msg/Twist]
-/imu/data_raw [sensor_msgs/msg/Imu]
-/odometry/filtered [nav_msgs/msg/Odometry]
-/parameter_events [rcl_interfaces/msg/ParameterEvent]
-/rosout [rcl_interfaces/msg/Log]
-/scan [sensor_msgs/msg/LaserScan]
-/wheel/odom [nav_msgs/msg/Odometry]
