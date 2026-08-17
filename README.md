@@ -13,6 +13,8 @@
 
 Object-Centric World-Model Flow RL is a ROS2 + IsaacLab robotics portfolio project for adversarial multi-agent visual navigation. It combines object-centric state modeling, world-model-assisted SAC Flow / PolicyFlow self-play, rule-aware action shielding, pushable rigid obstacles, laser-target dwell/range constraints, IsaacLab replay, and a Sim2Real deployment contract.
 
+The active research implementation is now [CBG-WM](./docs/cbg_wm.md): uncertainty-aware belief tokens, typed object-interaction dynamics, a probabilistic ensemble, and Flow-proposal CVaR MPC. Its code, tests, OOD protocol and ablations are included; the performance numbers below remain evidence from the published legacy SAC Flow run and are not claimed as CBG-WM results.
+
 The repository is organized as a reproducible engineering artifact, not just a demo video. The validated main line is a two-robot RoboCup-style adversarial match with 128-episode stochastic evaluation, strict replay audits, three-view IsaacLab media, and subsequent 1v1 real-robot experiment coverage. A separate 50v50 simulation-stage benchmark is included as a scalable rule-level extension.
 
 Core areas: multi-agent reinforcement learning, object-centric world models, SAC Flow / PolicyFlow, IsaacLab, ROS2/Nav2, Sim2Real, visual target interaction, robot safety audits.
@@ -130,9 +132,9 @@ Sim2Real calibration and validation are documented in `docs/sim2real.md`. Elimin
 
 ## Learning Strategy
 
-The reinforcement-learning layer is implemented under `isaaclab_sim/rl/`. The current research path is object-centric world-model + SAC Flow self-play with a PolicyFlow-style tactical actor. The formal tree now presents only the current architecture and its audited results.
+The reinforcement-learning layer is implemented under `isaaclab_sim/rl/`. The current research path is CBG-WM with a PolicyFlow-style tactical actor: sensor-facing object beliefs feed a typed interaction graph and stochastic ensemble, while short-horizon CVaR MPC ranks joint Flow proposals before the existing action shield executes the first action.
 
-The actor uses a velocity-reparameterized flow policy for high-level tactical controls, a centralized twin-Q critic, replay-buffer SAC updates, and an auxiliary object-centric dynamics model over both robots, targets, armor blockers and pushable boxes. This design is intended to express long-horizon push-box routes, target-order selection, early base-rush windows and asymmetric yellow/blue tactical tempo without hard-coding a single route.
+The learned model predicts object-state distributions, rewards, termination and four rule-risk channels over robots, targets, armor blockers and pushable boxes. The evaluation contract reports 1/5/10-step prediction, risk calibration, CVaR risk, OOD outcomes and paired push-box/armor counterfactual directions. The previously audited auxiliary-MLP SAC Flow policy is retained as the required baseline.
 
 Latest embodied RL update: the rule environment and IsaacLab replay use a normal-target shooter-outlet range gate of `0.05 m` to `0.50 m` and a recessed-base gate of `0.20 m` to `0.80 m`; target knockdown requires a legal opponent target, line of sight, distance-dependent accuracy and `0.80 s` laser dwell. The current policy adds safe micro-aim scanning at the fire pose and denser base-side pose candidates so robots can make small legal angle/side adjustments instead of freezing near the base. The final replay uses recessed base targets, ground-touching blue armor blockers, 45-degree normal target placement, dynamic pushable boxes and strict replay collision checks. Details are tracked in `docs/rl_world_model_flow_policy_plan.md` and `docs/project_deep_dive.md`.
 

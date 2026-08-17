@@ -1,12 +1,16 @@
-algorithm: object_centric_world_model_sac_flow_selfplay
+algorithm: cbg_wm_sac_flow_selfplay
+training_variant: full_accgd_cbg_wm
+legacy_flat_state: false
 seed: 260707
 num_envs: 32
+env_workers: 12
 timesteps: 200000
 hidden_dim: 256
 batch_size: 1024
-replay_size: 300000
+replay_size: 100000
 learning_starts: 4096
 gradient_steps: 2
+train_every_env_steps: 256
 gamma: 0.995
 tau: 0.01
 actor_lr: 0.0003
@@ -23,14 +27,44 @@ residual_scale: 0.04
 domain_randomization: true
 action_shield: true
 world_model_coef: 0.25
+ensemble_size: 5
+graph_layers: 2
+learned_edge_dynamics: true
+edge_rank: 24
+edge_loss_coef: 1.0
+belief_max_age_s: 3.0
+belief_covariance_growth: 0.08
+sensor_delay_steps: 1
+observation_dropout: 0.05
+belief_uncertainty_enabled: true
+sequence_horizon: 10
+sequence_batch_size: 8
+world_model_members_per_update: 1
+paired_batch_size: 16
+paired_pairs: 128
+paired_intervention_coef: 0.5
+mpc_enabled: true
+mpc_horizon: 5
+mpc_candidates: 24
+training_mpc_candidates: 6
+training_mpc_interval_env_steps: 1024
+cvar_beta: 0.90
+risk_coef: 2.0
+uncertainty_coef: 0.25
+proposal_noise: 0.12
+mpc_particles_per_member: 16
+mpc_rollout_chunk_size: 64
 device: cuda
-output: ../output/rl/world_model_sacflow_seed260707
+output: ../output/rl/cbg_wm_seed260707
 research_stack:
-  object_centric_state: true
+  uncertainty_aware_belief_tokens: true
+  typed_interaction_graph: true
+  probabilistic_ensemble: true
+  rule_risk_prediction: true
+  flow_proposal_cvar_mpc: true
   centralized_twin_q: true
   sac_flow_actor: true
-  auxiliary_world_model: true
-  future_imagination_rollouts: td_mpc2_style_short_horizon
+  shielded_execution: true
 deployment:
   policy_role: high_level_tactical_actor
   action_contract:

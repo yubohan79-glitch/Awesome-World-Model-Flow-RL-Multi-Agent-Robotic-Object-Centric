@@ -1,25 +1,31 @@
 # RoboCup VisionRL RL Interface
 
-This folder contains the current reinforcement-learning bridge for the IsaacLab
-two-robot visual-target arena. The active research path is:
+The active development path is now CBG-WM: uncertainty-aware belief tokens,
+typed object interactions, a probabilistic dynamics ensemble, and Flow-proposal
+CVaR MPC. See [`docs/cbg_wm.md`](../../docs/cbg_wm.md) for its training,
+evaluation, OOD and ablation contract. The published SAC Flow run documented
+below remains the legacy baseline; its historical metrics are not relabeled as
+CBG-WM results.
 
-`object-centric world model + SAC Flow / PolicyFlow self-play`
+This folder contains the reinforcement-learning bridge for the IsaacLab
+two-robot visual-target arena. The current research path is:
 
-The formal tree presents the current world-model SAC Flow architecture, strict
-rule contract, audited replay media and deployment export path.
+`CBG-WM belief graph + ensemble dynamics + Flow proposal risk MPC`
 
-## Current Policy
+## Current Research Policy
 
-- Algorithm: object-centric world-model SAC Flow self-play.
+- Algorithm: `cbg_wm_sac_flow_selfplay`.
 - Actor: velocity-reparameterized flow policy with separate yellow/blue actors.
-- Critic: centralized twin-Q over local observations and object-centric state.
-- Auxiliary model: object dynamics prediction over robots, targets, armor
-  blockers and pushable boxes.
+- Critic: centralized twin-Q over local observations and belief tokens.
+- Planning model: typed object graph dynamics ensemble with rule-risk heads.
+- Planner: Flow-proposal lower-tail CVaR MPC followed by the action shield.
 - Policy mode: residual expert, where the actor adjusts a rule-aware tactical
   prior instead of relearning low-level navigation from scratch.
 - Observation dimension: 46 local features per robot.
-- Object-state dimension: 165.
+- Belief-state dimension: 368 (`23` tokens by `16` features).
 - Action dimension: 6 high-level tactical controls.
+
+## Published Legacy Baseline
 
 Latest local checkpoint:
 

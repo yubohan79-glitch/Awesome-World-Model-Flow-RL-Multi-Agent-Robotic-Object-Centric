@@ -5,10 +5,9 @@ import json
 from pathlib import Path
 
 import torch
-from torch import nn
-
 from policies import FlowActor
 from robocup_visionrl_selfplay_env import TACTICAL_ACTION_LABELS
+from torch import nn
 from train_world_model_sacflow_selfplay import MultiAgentFlowActors
 
 
@@ -45,7 +44,7 @@ class FlowActorOnly(nn.Module):
 def load_actor(checkpoint_path: Path, device: torch.device, export_team: str) -> tuple[nn.Module, dict]:
     checkpoint = torch.load(checkpoint_path, map_location=device)
     algorithm = str(checkpoint.get("algorithm", ""))
-    if algorithm == "object_centric_world_model_sac_flow_selfplay":
+    if algorithm in ("object_centric_world_model_sac_flow_selfplay", "cbg_wm_sac_flow_selfplay"):
         config = checkpoint.get("config", {})
         actor_mode = str(checkpoint.get("actor_mode", config.get("actor_mode", "dual")))
         policy = MultiAgentFlowActors(
@@ -64,7 +63,7 @@ def load_actor(checkpoint_path: Path, device: torch.device, export_team: str) ->
 
     raise ValueError(
         f"unsupported checkpoint algorithm {algorithm!r}; "
-        "formal export only accepts object-centric world-model SAC Flow checkpoints"
+        "formal export only accepts legacy SAC Flow or CBG-WM checkpoints"
     )
 
 
@@ -121,6 +120,7 @@ def build_manifest(
         "obs_dim": int(checkpoint["obs_dim"]),
         "central_obs_dim": int(checkpoint.get("central_obs_dim", 0)),
         "object_state_dim": int(checkpoint.get("object_state_dim", 0)),
+        "belief_state_dim": int(checkpoint.get("belief_state_dim", 0)),
         "action_dim": int(checkpoint["action_dim"]),
         "action_labels": list(TACTICAL_ACTION_LABELS),
         "agents": list(checkpoint.get("agents", [])),
@@ -129,6 +129,7 @@ def build_manifest(
             "output": "tactical_action[6] in [-1, 1]",
             "runtime_owner": "rcvrl_behavior",
             "safety_gate": "opponent-target fire gate remains outside the learned actor",
+            "planner": "CBG-WM/CVaR MPC remains a runtime component and is not embedded in the actor-only export",
             "ros2_runtime": [
                 "rcvrl_behavior",
                 "Nav2 NavigateToPose",

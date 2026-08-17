@@ -1,0 +1,44 @@
+experiment: cbg_wm_registered_ablations
+seeds: [260707, 260708, 260709]
+variants:
+  legacy_sac_flow:
+    legacy_flat_state: true
+    mpc_enabled: false
+    learned_edge_dynamics: false
+    graph_layers: 0
+    paired_pairs: 0
+    paired_intervention_coef: 0.0
+  no_belief_uncertainty:
+    legacy_flat_state: false
+    belief_uncertainty_enabled: false
+    learned_edge_dynamics: true
+    graph_layers: 2
+    paired_intervention_coef: 0.5
+  no_interaction_graph:
+    legacy_flat_state: false
+    belief_uncertainty_enabled: true
+    learned_edge_dynamics: false
+    graph_layers: 0
+    paired_pairs: 0
+    paired_intervention_coef: 0.0
+  static_rule_graph:
+    legacy_flat_state: false
+    belief_uncertainty_enabled: true
+    learned_edge_dynamics: false
+    graph_layers: 2
+    paired_pairs: 0
+    paired_intervention_coef: 0.0
+  dynamic_graph_no_pairs:
+    legacy_flat_state: false
+    belief_uncertainty_enabled: true
+    learned_edge_dynamics: true
+    graph_layers: 2
+    paired_pairs: 0
+    paired_intervention_coef: 0.0
+  full_accgd_cbg_wm:
+    legacy_flat_state: false
+    belief_uncertainty_enabled: true
+    learned_edge_dynamics: true
+    graph_layers: 2
+    paired_pairs: 128
+    paired_intervention_coef: 0.5

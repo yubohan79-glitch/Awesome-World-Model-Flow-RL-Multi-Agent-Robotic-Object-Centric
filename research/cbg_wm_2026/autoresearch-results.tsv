@@ -1,0 +1,6 @@
+iteration	metric_value	delta	delta_pct	status	description	evaluator_source	timestamp
+0	0.000000	-	-	baseline	Audited initial CBG-WM state	mechanical	2026-07-28T20:55:00+08:00
+1	0.033333	0.033333	3.3333%	kept	Float32 test tolerance and recorded 19 passing focused tests	mechanical	2026-07-28T21:07:28+08:00
+2	0.065152	0.065152	6.5152%	kept	Action-conditioned constraint-edge lifecycle model and tests	mechanical	2026-07-28T21:12:38+08:00
+3	0.096970	0.096970	9.6970%	kept	Learned graph rollout, stochastic particles, ego-only CVaR MPC, and sequence replay	mechanical	2026-07-28T21:19:25+08:00
+4	0.166667	0.069697	6.9697%	kept	Registered six-variant training, frozen-data protocol, formal evaluator/statistics, and 36 passing tests	mechanical	2026-07-28T21:47:46+08:00

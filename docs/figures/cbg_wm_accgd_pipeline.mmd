@@ -1,0 +1,51 @@
+%%{init: {"theme": "base", "flowchart": {"htmlLabels": false, "curve": "basis"}, "themeCSS": "svg { background-color: #ffffff; } .edgeLabel { background-color: #ffffff; }", "themeVariables": {"background": "#ffffff", "primaryTextColor": "#18181b", "lineColor": "#52525b", "clusterBkg": "#fafafa", "clusterBorder": "#a1a1aa", "fontFamily": "Arial"}}}%%
+flowchart LR
+  subgraph Inputs["Runtime inputs"]
+    S["RGB-D, LiDAR, tags, referee events"]
+    A["Ego actions and opponent-action hypotheses"]
+  end
+
+  subgraph Training["Training-only supervision"]
+    P["Privileged simulator states and edge labels"]
+    I["Paired interventions with common random numbers"]
+  end
+
+  B["Uncertain object belief tokens"]
+  E["Action-conditioned edge transition and survival model"]
+  W["Stochastic object dynamics ensemble"]
+  C["Reward, termination, and typed rule-cost heads"]
+  M["Ego-only Flow proposal risk MPC"]
+  H["Action shield"]
+  X["Robot command"]
+
+  S --> B
+  B --> E
+  B --> W
+  A --> E
+  A --> W
+  E --> W
+  W --> C
+  C --> M
+  E --> M
+  A --> M
+  M --> H
+  H --> X
+
+  P -. "edge and dynamics targets" .-> E
+  P -. "risk and state targets" .-> W
+  I -. "interventional effect consistency" .-> E
+  I -. "return and risk effect consistency" .-> C
+
+  M -. "execute ego first action only" .-> A
+
+  classDef input fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+  classDef train fill:#fef3c7,stroke:#d97706,color:#78350f
+  classDef model fill:#dcfce7,stroke:#16a34a,color:#14532d
+  classDef planner fill:#f3e8ff,stroke:#9333ea,color:#581c87
+  classDef execute fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+
+  class S,A input
+  class P,I train
+  class B,E,W,C model
+  class M planner
+  class H,X execute

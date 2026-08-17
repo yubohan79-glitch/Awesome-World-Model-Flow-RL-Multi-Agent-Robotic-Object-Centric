@@ -1,0 +1,29 @@
+experiment: cbg_wm_2026_formal
+output_root: ../output/paper/cbg_wm_2026
+base_config: configs/world_model_flow.yaml
+ablation_config: configs/cbg_wm_ablations.yaml
+scenario_config: configs/cbg_wm_scenario_splits.yaml
+seeds: [260707, 260708, 260709]
+timesteps: 200000
+pilots:
+  variants: [static_rule_graph, full_accgd_cbg_wm]
+  timesteps: 20000
+evaluation:
+  prediction_episodes: 128
+  intervention_pairs_per_mechanism: 128
+  world_seeds_per_cell: 32
+  frozen_opponents: 4
+  seat_assignments: 2
+  matches_per_cell: 256
+  horizons: [1, 5, 10]
+  cvar_beta: 0.90
+external_baselines:
+  methods: [tdmpc2, dreamerv3, safedreamer]
+  timesteps: 200000
+public_benchmark:
+  preferred: causalworld
+  fallback: dino_wm_pusht_wall
+  compatibility_gate_hours: 2
+hardware:
+  required: true
+  synthetic_data_forbidden: true

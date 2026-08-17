@@ -1,0 +1,42 @@
+schema_version: 1
+train_reset:
+  seeds: [260707, 260708, 260709]
+  continuation_offset: 100000
+calibration:
+  nominal_seed_start: 410000
+  episodes: 128
+prediction_test:
+  base_seed: 420000
+  scenario_stride: 1000
+  episodes_per_scenario: 128
+online_match:
+  base_seed: 430000
+  scenario_stride: 1000
+  world_seeds_per_scenario: 32
+paired_intervention:
+  base_seed: 440000
+  scenario_stride: 1000
+  pairs_per_mechanism: 128
+scenarios:
+  nominal:
+    id: 0
+    parameters: {distribution: train_support, unseen_seeds: true}
+  held_out_boxes:
+    id: 1
+    parameters:
+      offsets: [[0.17, -0.13], [-0.16, 0.14]]
+      train_max_normalized_offset: 0.08
+  held_out_target_yaw:
+    id: 2
+    parameters: {test_degrees: 25.7, train_degrees: 10.0, balance_sign_by_seed: true}
+  delayed_occlusion:
+    id: 3
+    parameters: {delay_steps: 4, dropout: 0.25, covariance_growth: 0.14}
+  low_traction:
+    id: 4
+    parameters:
+      fast_env_surrogate: {drive_scale: 1.09, turn_scale: 1.12, push_step_scale: 1.25}
+      isaaclab_friction_range: [0.35, 0.45]
+  aggressive_opponent:
+    id: 5
+    parameters: {scripted_fraction: 0.5, held_out_snapshot_fraction: 0.5}

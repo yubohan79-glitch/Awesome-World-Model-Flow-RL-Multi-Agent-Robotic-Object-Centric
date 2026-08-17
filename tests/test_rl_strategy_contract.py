@@ -22,13 +22,16 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_world_model_flow_config_matches_environment_action_contract():
     config = yaml.safe_load((ROOT / "isaaclab_sim/rl/configs/world_model_flow.yaml").read_text(encoding="utf-8"))
 
-    assert config["algorithm"] == "object_centric_world_model_sac_flow_selfplay"
+    assert config["algorithm"] == "cbg_wm_sac_flow_selfplay"
     assert config["actor_mode"] == "dual"
     assert config["policy_mode"] == "residual_expert"
-    assert config["research_stack"]["object_centric_state"] is True
+    assert config["research_stack"]["uncertainty_aware_belief_tokens"] is True
+    assert config["research_stack"]["typed_interaction_graph"] is True
+    assert config["research_stack"]["probabilistic_ensemble"] is True
+    assert config["research_stack"]["flow_proposal_cvar_mpc"] is True
     assert config["research_stack"]["centralized_twin_q"] is True
     assert config["research_stack"]["sac_flow_actor"] is True
-    assert config["research_stack"]["auxiliary_world_model"] is True
+    assert config["research_stack"]["shielded_execution"] is True
     assert config["deployment"]["action_contract"] == list(TACTICAL_ACTION_LABELS)
     assert TACTICAL_ACTION_DIM == len(config["deployment"]["action_contract"])
 
@@ -170,7 +173,7 @@ def test_action_shield_suppresses_contact_near_own_assets():
 
     assert changed is True
     assert shielded[2] <= -0.25
-    assert shielded[5] <= 0.20
+    assert float(shielded[5]) <= 0.20 + 1e-6
 
 
 def test_published_world_model_flow_run_data_has_expected_strategy_metrics():

@@ -7,17 +7,21 @@ from pathlib import Path
 
 import numpy as np
 import torch
-
 from expert_policy import compose_policy_action
-from robocup_visionrl_selfplay_env import AGENTS, RoboCupVisionRLSelfPlayEnv
+from planning import FlowProposalRiskMPC
 from policies import FlowActor
+from robocup_visionrl_selfplay_env import AGENTS, RoboCupVisionRLSelfPlayEnv
 from train_world_model_sacflow_selfplay import MultiAgentFlowActors
+from world_model import (
+    BeliefTracker,
+    CounterfactualBeliefGraphWorldModel,
+)
 
 
 def load_policy(checkpoint_path: Path, device: torch.device) -> tuple[torch.nn.Module, dict]:
     checkpoint = torch.load(checkpoint_path, map_location=device)
     algorithm = str(checkpoint.get("algorithm", ""))
-    if algorithm == "object_centric_world_model_sac_flow_selfplay":
+    if algorithm in ("object_centric_world_model_sac_flow_selfplay", "cbg_wm_sac_flow_selfplay"):
         config = checkpoint.get("config", {})
         actor_mode = str(checkpoint.get("actor_mode", config.get("actor_mode", "dual")))
         model = MultiAgentFlowActors(
@@ -29,6 +33,40 @@ def load_policy(checkpoint_path: Path, device: torch.device) -> tuple[torch.nn.M
             velocity_scale=float(config.get("flow_velocity_scale", 0.20)),
         ).to(device)
         model.load_state_dict(checkpoint["actor_state_dict"])
+        if algorithm == "cbg_wm_sac_flow_selfplay":
+            world_model = CounterfactualBeliefGraphWorldModel(
+                int(checkpoint["action_dim"]),
+                len(checkpoint.get("agents", AGENTS)),
+                int(config.get("hidden_dim", 256)),
+                ensemble_size=int(config.get("ensemble_size", 5)),
+                graph_layers=int(config.get("graph_layers", 2)),
+                learned_edge_dynamics=bool(config.get("learned_edge_dynamics", True)),
+                edge_rank=int(config.get("edge_rank", 24)),
+                edge_loss_coef=float(config.get("edge_loss_coef", 1.0)),
+            ).to(device)
+            world_model.load_state_dict(checkpoint["world_model_state_dict"])
+            world_model.eval()
+            model.cbg_world_model = world_model
+            model.cbg_belief_config = {
+                "max_age_s": float(config.get("belief_max_age_s", 3.0)),
+                "covariance_growth": float(config.get("belief_covariance_growth", 0.08)),
+                "sensor_delay_steps": int(config.get("sensor_delay_steps", 1)),
+                "observation_dropout": float(config.get("observation_dropout", 0.05)),
+                "uncertainty_enabled": bool(config.get("belief_uncertainty_enabled", True)),
+            }
+            if bool(config.get("mpc_enabled", True)):
+                model.cbg_planner = FlowProposalRiskMPC(
+                    world_model,
+                    horizon=int(config.get("mpc_horizon", 5)),
+                    candidates=int(config.get("mpc_candidates", 24)),
+                    gamma=float(config.get("gamma", 0.995)),
+                    cvar_beta=float(config.get("cvar_beta", 0.90)),
+                    risk_coef=float(config.get("risk_coef", 2.0)),
+                    uncertainty_coef=float(config.get("uncertainty_coef", 0.25)),
+                    proposal_noise=float(config.get("proposal_noise", 0.12)),
+                    particles_per_member=int(config.get("mpc_particles_per_member", 16)),
+                    rollout_chunk_size=int(config.get("mpc_rollout_chunk_size", 64)),
+                )
         model.eval()
         return model, checkpoint
 
@@ -86,6 +124,11 @@ def run_episode(
     env = RoboCupVisionRLSelfPlayEnv()
     observations, _ = env.reset(seed=seed)
     rewards_total = {team: 0.0 for team in AGENTS}
+    planner_metrics = {"cvar_return": [], "expected_risk": [], "epistemic_penalty": []}
+    belief_tracker = None
+    planner = getattr(model, "cbg_planner", None)
+    if planner is not None:
+        belief_tracker = BeliefTracker(seed=seed, **getattr(model, "cbg_belief_config", {}))
     events = {
         "normal_hits": 0,
         "base_hit_wins": 0,
@@ -100,11 +143,29 @@ def run_episode(
 
     steps = 0
     for steps in range(1, max_steps + 1):
-        actions = {}
-        raw_actions = {}
+        actions: dict[str, np.ndarray] = {}
+        raw_actions: dict[str, np.ndarray] = {}
+        if planner is not None and belief_tracker is not None:
+            joint_obs = torch.as_tensor(
+                np.stack([observations[team] for team in AGENTS])[None],
+                dtype=torch.float32,
+                device=device,
+            )
+            belief = torch.as_tensor(
+                belief_tracker.observe(env).tokens[None], dtype=torch.float32, device=device
+            )
+            with torch.no_grad():
+                plan = planner.plan(model, joint_obs, belief)
+            for index, team in enumerate(AGENTS):
+                raw_actions[team] = plan.actions[0, index].detach().cpu().numpy().astype(np.float32)
+            planner_metrics["cvar_return"].append(float(plan.cvar_return.mean().cpu()))
+            planner_metrics["expected_risk"].append(float(plan.expected_risk.mean().cpu()))
+            planner_metrics["epistemic_penalty"].append(float(plan.epistemic_penalty.mean().cpu()))
+        else:
+            for team in AGENTS:
+                raw_actions[team] = actor_action(model, observations[team], team, device, deterministic)
         for team in AGENTS:
-            raw_action = actor_action(model, observations[team], team, device, deterministic)
-            raw_actions[team] = raw_action
+            raw_action = raw_actions[team]
             actions[team] = compose_policy_action(
                 env,
                 team,
@@ -166,6 +227,10 @@ def run_episode(
         "events": events,
         "target_order": {team: list(env.target_order[team]) for team in AGENTS},
         "strategy_counts": {team: dict(env.strategy_counts[team]) for team in AGENTS},
+        "planner": {
+            key: round(float(np.mean(values)), 6) if values else 0.0
+            for key, values in planner_metrics.items()
+        },
         "trace": trace,
     }
 
@@ -181,6 +246,7 @@ def summarize(episodes: list[dict[str, object]], wall_time_s: float) -> dict[str
     }
     score_yellow = [int(episode["scores"]["yellow"]) for episode in episodes]
     score_blue = [int(episode["scores"]["blue"]) for episode in episodes]
+    planner_keys = episodes[0].get("planner", {}).keys()
     return {
         "episodes": count,
         "yellow_win_rate": round(winners.count("yellow") / count, 4),
@@ -197,6 +263,10 @@ def summarize(episodes: list[dict[str, object]], wall_time_s: float) -> dict[str
         "block_steps_per_episode": round(totals["block_steps"] / count, 4),
         "base_rush_steps_per_episode": round(totals["base_rush_steps"] / count, 4),
         "interference_steps_per_episode": round(totals["interference_steps"] / count, 4),
+        "planner": {
+            key: round(float(np.mean([episode.get("planner", {}).get(key, 0.0) for episode in episodes])), 6)
+            for key in planner_keys
+        },
         "simulated_steps_per_second": round(total_steps / max(wall_time_s, 1e-9), 1),
     }
 
