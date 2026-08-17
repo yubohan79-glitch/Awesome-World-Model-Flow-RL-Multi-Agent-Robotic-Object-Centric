@@ -1,9 +1,9 @@
-# Object-Centric World-Model Flow RL for Multi-Agent Robotics
+# Uncertainty-Aware Counterfactual Belief-Graph World Model for Rule-Constrained Multi-Robot Tactics
 
 [![ROS2 Jazzy](https://img.shields.io/badge/ROS2-Jazzy-2563EB)](https://docs.ros.org/en/jazzy/)
 [![Ubuntu 24.04](https://img.shields.io/badge/Ubuntu-24.04-E95420)](https://ubuntu.com/)
 [![IsaacLab](https://img.shields.io/badge/IsaacLab-Sim2Real-16A34A)](https://isaac-sim.github.io/IsaacLab/)
-[![RL](https://img.shields.io/badge/RL-World--Model%20SAC%20Flow-7C3AED)](isaaclab_sim/rl/)
+[![RL](https://img.shields.io/badge/RL-CBG-WM%20CVaR%20MPC-7C3AED)](isaaclab_sim/rl/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-111827)](LICENSE)
 
 
@@ -11,9 +11,9 @@
 
 ![RoboCup VisionRL overview](./assets/readme/overview.png?raw=true)
 
-Object-Centric World-Model Flow RL is a ROS2 + IsaacLab robotics portfolio project for adversarial multi-agent visual navigation. It combines object-centric state modeling, world-model-assisted SAC Flow / PolicyFlow self-play, rule-aware action shielding, pushable rigid obstacles, laser-target dwell/range constraints, IsaacLab replay, and a Sim2Real deployment contract.
+CBG-WM (Uncertainty-Aware Counterfactual Belief-Graph World Model) is a ROS2 + IsaacLab robotics research project for adversarial multi-agent visual navigation. It combines uncertainty-aware belief tokens, typed object-interaction graph dynamics, a probabilistic ensemble world model, and Flow-proposal CVaR risk MPC with rule-aware action shielding, pushable rigid obstacles, laser-target dwell/range constraints, IsaacLab replay, and a Sim2Real deployment contract. The legacy object-centric SAC Flow policy is retained as the required baseline.
 
-The active research implementation is now [CBG-WM](./docs/cbg_wm.md): uncertainty-aware belief tokens, typed object-interaction dynamics, a probabilistic ensemble, and Flow-proposal CVaR MPC. Its code, tests, OOD protocol and ablations are included; the performance numbers below remain evidence from the published legacy SAC Flow run and are not claimed as CBG-WM results.
+The active implementation is [CBG-WM](./docs/cbg_wm.md): uncertainty-aware belief tokens, typed object-interaction dynamics, a probabilistic ensemble, and Flow-proposal CVaR MPC. Its code, tests, OOD protocol and ablations are included; the performance numbers below remain evidence from the published legacy SAC Flow baseline run and are not claimed as CBG-WM results.
 
 The repository is organized as a reproducible engineering artifact, not just a demo video. The validated main line is a two-robot RoboCup-style adversarial match with 128-episode stochastic evaluation, strict replay audits, three-view IsaacLab media, and subsequent 1v1 real-robot experiment coverage. A separate 50v50 simulation-stage benchmark is included as a scalable rule-level extension.
 
